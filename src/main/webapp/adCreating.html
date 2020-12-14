@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Car auction</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    <script>
+        function getContextPath() {
+            return location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
+        }
+
+        function loadData() {
+            $.ajax({
+                url: getContextPath() + '/create',
+                dataType: 'json',
+                contentType: 'json'
+            }).done(function (data) {
+                $(data.transmissions).each(function (index, el) {
+                    $('#transmission').append(
+                        '<option id="' + el.id + '">' + el.name + '</option>'
+                    )
+                })
+
+                $(data.bodies).each(function (index, el) {
+                    $('#bodyType').append(
+                        '<option id="' + el.id + '">' + el.name + '</option>'
+                    )
+                })
+            })
+        }
+
+        function save() {
+            let brand = document.getElementById('brand').value;
+            let model = document.getElementById('model').value;
+            let body = document.getElementById('bodyType');
+            let bodyId = body.options[body.selectedIndex].id;
+            let transmission = document.getElementById('transmission');
+            let transmissionId = transmission.options[transmission.selectedIndex].id;
+            let price = document.getElementById('price').value;
+            $.ajax({
+                url: getContextPath() + '/create',
+                dataType: 'json',
+                contentType: 'json',
+                method: 'POST',
+                data: JSON.stringify({
+                    brand: brand,
+                    model: model,
+                    body: bodyId,
+                    transmission: transmissionId,
+                    price: price
+                }),
+                statusCode: {
+                    200: function () {
+                        savePhoto();
+                        window.location.href = getContextPath() + "/index.html"
+                    }
+                }
+            })
+        }
+
+        function savePhoto() {
+            let data = new FormData();
+            data.append('datafile', $("#photo").get(0).files[0]);
+            $.ajax({
+                type: "POST",
+                url: getContextPath() + "/images",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false
+            })
+        }
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ"
+          crossorigin="anonymous">
+</head>
+<body onload="loadData()">
+<div class="container pt-3">
+    <div class="row">
+        <div class="card" style="width: 100%">
+            <div class="card-header">
+                Create new ad
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label>Car brand</label>
+                        <input type="text" class="form-control" id="brand">
+                    </div>
+                    <div class="form-group">
+                        <label>Car model</label>
+                        <input type="text" class="form-control" id="model">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="bodyType">Body type</label>
+                            <select id="bodyType" class="form-control">
+                                <option value="" selected disabled>Please select</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="transmission">Transmission</label>
+                            <select id="transmission" class="form-control">
+                                <option value="" selected disabled>Please select</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="price">Price</label>
+                            <input type="number" class="form-control" id="price">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="photo">Upload photo</label>
+                        <input type="file" class="form-control-file" id="photo">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="save()">Create ad
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
