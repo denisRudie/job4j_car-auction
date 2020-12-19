@@ -46,8 +46,7 @@ public class AdServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        try (BufferedReader read = req.getReader();
-             PrintWriter out = resp.getWriter()) {
+        try (BufferedReader read = req.getReader()) {
             HbmAuction store = HbmAuction.instOf();
             StringBuilder fullLine = new StringBuilder();
             String oneLine;

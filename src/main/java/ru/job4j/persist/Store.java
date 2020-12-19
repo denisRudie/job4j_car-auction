@@ -1,14 +1,14 @@
 package ru.job4j.persist;
 
-import ru.job4j.model.*;
+import ru.job4j.model.Car;
+import ru.job4j.model.CarBody;
+import ru.job4j.model.Owner;
+import ru.job4j.model.Transmission;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface Store {
-
-    Collection<Car> getAllCars();
-
-    Collection<Car> getAllCarsByUser(Owner owner);
 
     Collection<Transmission> getAllTransmissions();
 
@@ -30,7 +30,7 @@ public interface Store {
 
     int addCarPhoto();
 
-    Car getCarById(int id);
-
     void updateCarPhoto(int carId, int photoId);
+
+    Collection<Car> getCars(Map<String, String> params);
 }

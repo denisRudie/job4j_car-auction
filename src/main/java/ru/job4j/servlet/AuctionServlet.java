@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AuctionServlet extends HttpServlet {
@@ -28,31 +30,36 @@ public class AuctionServlet extends HttpServlet {
         try (PrintWriter out = resp.getWriter()) {
             String action = req.getParameter("action");
             Owner owner = (Owner) req.getSession().getAttribute("user");
+            boolean withPhoto = Boolean.parseBoolean(req.getParameter("withPhoto"));
+            boolean today = Boolean.parseBoolean(req.getParameter("today"));
+            String brandFilter = req.getParameter("brand");
+            resp.setCharacterEncoding("UTF-8");
+            Map<String, String> params = new HashMap<>();
 
-            switch (action) {
-                case "my" -> {
-                    resp.setCharacterEncoding("UTF-8");
-                    Collection<Car> cars =
-                            HbmAuction.instOf()
-                                    .getAllCarsByUser(owner).stream()
-                                    .sorted(Comparator.comparing(Car::getId))
-                                    .collect(Collectors.toList());
-                    String jsonOut = new Gson().toJson(cars);
-                    out.write(jsonOut);
-                    out.flush();
-                }
-                case "all" -> {
-                    resp.setCharacterEncoding("UTF-8");
-                    Collection<Car> tasks =
-                            HbmAuction.instOf()
-                                    .getAllCars().stream()
-                                    .sorted(Comparator.comparing(Car::getId))
-                                    .collect(Collectors.toList());
-                    String jsonOut = new Gson().toJson(tasks);
-                    out.write(jsonOut);
-                    out.flush();
-                }
+            if (action.equals("my")) {
+                params.put("owner.id", " = " + owner.getId());
             }
+
+            if (withPhoto) {
+                params.put("photo", " != null");
+            }
+
+            if (today) {
+                params.put("created", " > current_date");
+            }
+
+            if (!brandFilter.equals("")) {
+                params.put("brand", " = '" + brandFilter + "'");
+            }
+
+            Collection<Car> cars = HbmAuction.instOf()
+                    .getCars(params).stream()
+                    .sorted(Comparator.comparing(Car::getId).reversed())
+                    .collect(Collectors.toList());
+
+            String jsonOut = new Gson().toJson(cars);
+            out.write(jsonOut);
+            out.flush();
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);

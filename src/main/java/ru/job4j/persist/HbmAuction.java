@@ -8,6 +8,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import ru.job4j.model.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,30 +48,6 @@ public class HbmAuction implements Store, AutoCloseable {
     @Override
     public void close() {
         StandardServiceRegistryBuilder.destroy(registry);
-    }
-
-    @Override
-    public Collection<Car> getAllCars() {
-        return tx(session -> session.createQuery(
-                "select distinct c from Car c " +
-                        "left join fetch c.owner " +
-                        "left join c.carBody " +
-                        "left join c.transmission"
-                ).list()
-        );
-    }
-
-    @Override
-    public Collection<Car> getAllCarsByUser(Owner owner) {
-        return tx(session -> session.createQuery(
-                "select distinct c from Car c " +
-                        "left join fetch c.owner " +
-                        "left join c.carBody " +
-                        "left join c.transmission " +
-                        "where c.owner = :owner"
-                ).setParameter("owner", owner)
-                        .list()
-        );
     }
 
     @Override
@@ -132,11 +109,6 @@ public class HbmAuction implements Store, AutoCloseable {
     }
 
     @Override
-    public Car getCarById(int id) {
-        return tx(session -> session.get(Car.class, id));
-    }
-
-    @Override
     public void updateCarPhoto(int carId, int photoId) {
         consume(session -> {
             Car car = session.get(Car.class, carId);
@@ -147,46 +119,28 @@ public class HbmAuction implements Store, AutoCloseable {
         });
     }
 
+    @Override
+    public Collection<Car> getCars(Map<String, String> params) {
+        StringBuilder sb = new StringBuilder("select distinct c from Car c " +
+                "left join fetch c.owner " +
+                "left join c.carBody " +
+                "left join c.transmission " +
+                "where ");
+        for (Map.Entry<String, String> param : params.entrySet()) {
+            sb.append("c.")
+                    .append(param.getKey())
+                    .append(param.getValue())
+                    .append(" and ");
+        }
+        String request = sb.toString().substring(0, sb.toString().length() - 4);
+        return tx(session -> session.createQuery(request).list());
+    }
+
     public void addCarBody(CarBody carBody) {
         consume(session -> session.save(carBody));
     }
 
     public void addTransmission(Transmission transmission) {
         consume(session -> session.save(transmission));
-    }
-
-    public static void main(String[] args) {
-        HbmAuction auction = HbmAuction.instOf();
-        System.out.println(auction.getCarById(1).getPhoto());
-//        Add test data
-//        CarBody carBody = new CarBody();
-//        carBody.setName("sedan");
-//        auction.addCarBody(carBody);
-//
-//        Owner owner = new Owner();
-//        owner.setName("Mike");
-//        owner.setEmail("mike@gmail.com");
-//        owner.setPassword("123");
-//        auction.addOwner(owner);
-//
-//        Transmission transmission = new Transmission();
-//        transmission.setName("AT");
-//        auction.addTransmission(transmission);
-//
-//        Car car = new Car();
-//        car.setCarBody(carBody);
-//        car.setBrand("kia");
-//        car.setModel("optima");
-//        car.setTransmission(transmission);
-//        car.setPhotoId(123);
-//        car.setOwner(owner);
-//        auction.addCar(car);
-
-//        Owner owner = new Owner();
-//        owner.setId(6);
-//        auction.getAllCarsByUser(owner).forEach(System.out::println);
-
-//        auction.removeCar(1);
-//        auction.getAllCars().forEach(System.out::println);
     }
 }

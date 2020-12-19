@@ -14,79 +14,81 @@
             return location.pathname.substring(0, window.location.pathname.indexOf("/", 2));
         }
 
+        let alreadyLoadedOptions = false;
+
         function loadAds() {
+            let brand = document.getElementById('carBrand');
+            let brandName = brand.options[brand.selectedIndex].value;
+            let adsFilter;
             if ($('#allAds').is(':checked')) {
-                $.ajax({
-                    url: getContextPath() + '/auction',
-                    data: {action: "all"},
-                    dataType: 'json'
-                }).done(function (data) {
-                    $('#table_body').empty();
-                    $(data).each(function (index, el) {
-                        let photoId = el.photo.id;
-                        let status;
-                        if (el.sold === true) {
-                            status = 'sold';
-                        } else {
-                            status = 'on sale';
-                        }
-                        $('#table_body').append(
-                            '<tr>' +
-                            '<td>' + el.id + '</td>' +
-                            '<td>' +
-                            '<img src="' + getContextPath() + "/images?photoId=" + photoId +
-                            '" class=\"img-rounded\" alt=\"None image\" width="100" height="100"/></td>' +
-                            '<td>' + el.brand + '</td>' +
-                            '<td>' + el.model + '</td>' +
-                            '<td>' + el.carBody.name + '</td>' +
-                            '<td>' + el.transmission.name + '</td>' +
-                            '<td>' + el.created + '</td>' +
-                            '<td>' + status + '</td>' +
-                            '<td>' + el.price + '</td>' +
-                            '<td></td>' +
-                            '<td></td>' +
-                            '</tr>'
-                        )
-                    })
-                })
-            } else if ($('#myAds').is(':checked')) {
-                $.ajax({
-                    url: getContextPath() + '/auction',
-                    data: {action: "my"},
-                    dataType: 'json'
-                }).done(function (data) {
-                    $('#table_body').empty();
-                    $(data).each(function (index, el) {
-                        let photoId = el.photo.id;
-                        let status;
-                        let button = '';
-                        if (data[index].sold === true) {
-                            status = 'sold';
-                        } else if (el.sold === false) {
-                            status = 'on sale';
+                adsFilter = "all";
+            } else {
+                adsFilter = "my";
+            }
+            $.ajax({
+                url: getContextPath() + '/auction',
+                data: {
+                    action: adsFilter,
+                    withPhoto: $('#withPhoto').is(':checked'),
+                    today: $('#fromToday').is(':checked'),
+                    brand: brandName
+                },
+                dataType: 'json'
+            }).done(function (data) {
+                $('#table_body').empty();
+                let brands = [];
+                $(data).each(function (index, el) {
+                    let photoId;
+                    if (el.hasOwnProperty('photo')) {
+                        photoId = el.photo.id;
+                    } else photoId = '';
+                    let status;
+                    let button = '';
+                    let remove = '';
+                    if (el.sold === true) {
+                        status = 'sold';
+                    } else {
+                        status = 'on sale';
+                        if ($('#myAds').is(':checked')) {
                             button = addButtons(el.id);
                         }
-                        $('#table_body').append(
-                            '<tr>' +
-                            '<td>' + el.id + '</td>' +
-                            '<td><img src="' + getContextPath() + "/images?photoId=" + photoId +
-                            '" class=\"img-rounded\" alt=\"None image\" width="100" height="100"/></td>' +
-                            '<td>' + el.brand + '</td>' +
-                            '<td>' + el.model + '</td>' +
-                            '<td>' + el.carBody.name + '</td>' +
-                            '<td>' + el.transmission.name + '</td>' +
-                            '<td>' + el.created + '</td>' +
-                            '<td>' + status + '</td>' +
-                            '<td>' + el.price + '</td>' +
-                            '<td>' + button + '</td>' +
-                            '<td><i class="btn fas fa-trash-alt fa-lg long-arrow-alt-right" id="' +
+                    }
+                    if ($('#myAds').is(':checked')) {
+                        remove = '<i class="btn fas fa-trash-alt fa-lg long-arrow-alt-right" id="' +
                             el.id + '" onclick="deleteAd(' + el.id +
-                            ')"></i></td>' +
-                            '</tr>'
+                            ')"></i>'
+                    }
+                    if (!alreadyLoadedOptions && $.inArray(el.brand, brands) === -1) {
+                        brands.push(el.brand);
+                    }
+
+                    $('#table_body').append(
+                        '<tr>' +
+                        '<td>' + el.id + '</td>' +
+                        '<td>' +
+                        '<img src="' + getContextPath() + "/images?photoId=" + photoId +
+                        '" class=\"img-rounded\" alt=\"None image\" width="100" height="100"/></td>' +
+                        '<td>' + el.brand + '</td>' +
+                        '<td>' + el.model + '</td>' +
+                        '<td>' + el.carBody.name + '</td>' +
+                        '<td>' + el.transmission.name + '</td>' +
+                        '<td>' + el.created + '</td>' +
+                        '<td>' + status + '</td>' +
+                        '<td>' + el.price + '</td>' +
+                        '<td>' + button + '</td>' +
+                        '<td>' + remove + '</td>' +
+                        '</tr>'
+                    )
+                })
+                if (!alreadyLoadedOptions) {
+                    $(brands).each(function (index, el) {
+                        $('#carBrand').append(
+                            '<option>' + el + '</option>'
                         )
                     })
-                })
-            }
+                    alreadyLoadedOptions = true;
+                }
+            })
         }
 
         function addButtons(id) {
@@ -147,6 +149,24 @@
             <input class="form-check-input" type="radio" name="inlineRadioOptions" id="myAds"
                    value="option2" onclick="loadAds()">
             <label class="form-check-label" for="myAds">Show my ads</label>
+        </div>
+    </div>
+    <div class="col-sm-8 pb-4">
+        <div class="form-check form-check-inline">
+            <label class="form-check-label" for="withPhoto">Show ads with photo</label>
+            <input class="form-check-input ml-2" type="checkbox" value="" onclick="loadAds()"
+                   id="withPhoto">
+        </div>
+        <div class="form-check form-check-inline">
+            <label class="form-check-label" for="withPhoto">Show today ads</label>
+            <input class="form-check-input ml-2" type="checkbox" value="" onclick="loadAds()"
+                   id="fromToday">
+        </div>
+        <div class="form-check form-check-inline col-md-4">
+            <label class="col-md-4" for="carBrand">Car brand</label>
+            <select id="carBrand" class="form-control" onchange="loadAds()">
+                <option value="" selected></option>
+            </select>
         </div>
     </div>
     <table class="table text-center" id="iterable_table">
