@@ -1,6 +1,7 @@
 package ru.job4j.model;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "car_body")
@@ -9,6 +10,12 @@ public class CarBody {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+
+    public static CarBody of(String name) {
+        CarBody cb = new CarBody();
+        cb.setName(name);
+        return cb;
+    }
 
     public int getId() {
         return id;
@@ -24,5 +31,18 @@ public class CarBody {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CarBody carBody = (CarBody) o;
+        return id == carBody.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

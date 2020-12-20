@@ -1,9 +1,8 @@
 package ru.job4j.model;
 
-import org.apache.taglibs.standard.lang.jstl.UnaryMinusOperator;
-
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "car")
@@ -33,6 +32,19 @@ public class Car {
     public Car() {
         this.created = new Date();
         this.sold = false;
+    }
+
+    public static Car of(String brand, String model, Owner owner, Transmission transmission,
+                         CarBody carBody, float price, CarPhoto carPhoto) {
+        Car c = new Car();
+        c.setBrand(brand);
+        c.setModel(model);
+        c.setOwner(owner);
+        c.setTransmission(transmission);
+        c.setCarBody(carBody);
+        c.setPrice(price);
+        c.setPhoto(carPhoto);
+        return c;
     }
 
     public int getId() {
@@ -129,5 +141,18 @@ public class Car {
                 ", price=" + price +
                 ", photo=" + photo +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Car car = (Car) o;
+        return id == car.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -33,4 +33,6 @@ public interface Store {
     void updateCarPhoto(int carId, int photoId);
 
     Collection<Car> getCars(Map<String, String> params);
+
+    Car getCarById(int id);
 }

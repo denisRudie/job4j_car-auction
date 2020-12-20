@@ -136,6 +136,11 @@ public class HbmAuction implements Store, AutoCloseable {
         return tx(session -> session.createQuery(request).list());
     }
 
+    @Override
+    public Car getCarById(int id) {
+        return tx(session -> session.get(Car.class, id));
+    }
+
     public void addCarBody(CarBody carBody) {
         consume(session -> session.save(carBody));
     }

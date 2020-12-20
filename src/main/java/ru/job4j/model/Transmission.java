@@ -1,6 +1,7 @@
 package ru.job4j.model;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "transmission")
@@ -9,6 +10,12 @@ public class Transmission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+
+    public static Transmission of(String name) {
+        Transmission t = new Transmission();
+        t.setName(name);
+        return t;
+    }
 
     public int getId() {
         return id;
@@ -24,5 +31,18 @@ public class Transmission {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transmission that = (Transmission) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
